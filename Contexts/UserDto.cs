@@ -3,7 +3,7 @@ using System.Security.Claims;
 
 namespace FilesAPI.Contexts
 {
-    public class User
+    public class UserDto
     {
         public long? Id { get; set; }
         [Required]

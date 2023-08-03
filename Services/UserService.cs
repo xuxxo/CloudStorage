@@ -1,7 +1,9 @@
 ﻿using FilesAPI.Contexts;
-using FilesAPI.Models;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Security.Claims;
+using System.Text;
 
 namespace FilesAPI.Services
 {
@@ -13,11 +15,11 @@ namespace FilesAPI.Services
             _appContext = appContext;
         }
 
-        public User? GetUser(long id) => _appContext.Users.Where(u => u.Id == id).FirstOrDefault();
-        public User? GetUserByUsername(string username) => _appContext.Users.Where(u => u.Username == username).FirstOrDefault();
-        public List<User> GetAllUsers() => _appContext.Users.ToList();
+        public UserDto? GetUser(long id) => _appContext.Users.Where(u => u.Id == id).FirstOrDefault();
+        public UserDto? GetUserByUsername(string username) => _appContext.Users.Where(u => u.Username == username).FirstOrDefault();
+        public List<UserDto> GetAllUsers() => _appContext.Users.ToList();
 
-        public Response CreateNewUser(User user)
+        public Response CreateNewUser(Contexts.UserDto user)
         {
             try
             {
@@ -59,7 +61,30 @@ namespace FilesAPI.Services
             return new Response() { IsSuccess = true, Message = "Пользователь успешно удалён" };
         }
 
-        private bool IsUsernameAvailable(string username)
+        public string CreateToken(UserDto user)
+        {
+            List<Claim> claims = new List<Claim> {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username ?? String.Empty),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("JQHWDy1u2h3b87!*&$&!$hdff786"));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                    claims: claims,
+                    expires: DateTime.Now.AddDays(1),
+                    signingCredentials: creds
+                );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
+        }
+
+        private static bool IsUsernameAvailable(string username)
         {
             using (AppContext db = new AppContext())
             {

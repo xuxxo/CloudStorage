@@ -1,13 +1,7 @@
 ﻿using FilesAPI.Contexts;
-using FilesAPI.Services;
 using FilesAPI.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using FilesAPI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace FilesApi.Controllers
 {
@@ -25,23 +19,26 @@ namespace FilesApi.Controllers
         }
 
         [HttpPost("Register")]
-        public ActionResult<User> Register(UserDto request)
+        public IActionResult Register(AuthModel request)
         {
-            string passwordHash
-                = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            User user = new();
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+            UserDto user = new();
             user.Username = request.Username;
             user.Password = passwordHash;
             user.Email = request.Email;
             user.Role = "User";
+
             var response = _userService.CreateNewUser(user);
+
             if (response.IsSuccess)
                 return Ok(user);
+
             return BadRequest(response.Message);
         }
 
         [HttpPost("Login")]
-        public ActionResult<User> Login(UserDto request)
+        public IActionResult Login(AuthModel request)
         {
             var user = _userService.GetUserByUsername(request.Username);
 
@@ -49,38 +46,18 @@ namespace FilesApi.Controllers
             {
                 return BadRequest("Неправильный логин или пароль");
             }
+
             if (!BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             {
                 _logger.LogWarning("Введен неправильный пароль для пользователя {user}", user);
                 return BadRequest("Неправильный логин или пароль");
             }
 
-            string token = CreateToken(user);
+            var token = _userService.CreateToken(user);
 
             return Ok(token);
         }
 
-        private string CreateToken(User user)
-        {
-            List<Claim> claims = new List<Claim> {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username ?? String.Empty),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("JQHWDy1u2h3b87!*&$&!$hdff786"));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            var token = new JwtSecurityToken(
-                    claims: claims,
-                    expires: DateTime.Now.AddDays(1),
-                    signingCredentials: creds
-                );
-
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-
-            return jwt;
-        }
+        
     }
 }

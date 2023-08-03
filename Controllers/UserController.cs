@@ -14,13 +14,7 @@ namespace FilesAPI.Controllers
     {
         private readonly UserService _usersService;
         private readonly ILogger<UsersController> _logger;
-        private long UserId 
-        {
-            get
-            {
-                return Int64.Parse(User.Claims.First(i => i.Type == ClaimTypes.NameIdentifier).Value); ;    // возвращаем значение свойства
-            }
-        }
+        private long UserId => long.Parse(User.Claims.First(i => i.Type == ClaimTypes.NameIdentifier).Value); 
 
         public UsersController(UserService usersService, ILogger<UsersController> logger)
         {
@@ -35,13 +29,19 @@ namespace FilesAPI.Controllers
                 return BadRequest();
 
             var user = _usersService.GetUser(id.Value);
-            if (User.Claims.First(i => i.Type == "Role").Value == "User" && (user?.Username ?? string.Empty) != User.Claims.First(i => i.Type == "Name").Value)
-                return Forbid();
+
             if (user is null)
                 return NotFound();
 
-            return Json(user);
-            
+            var result = new UserModel
+            {
+                Username = user.Username,
+                Email = user.Email,
+                Id = id.Value,
+                Role = user.Role
+            };
+
+            return Json(result);
         }
 
         [HttpGet(Name = "GetMyUser"), Authorize(Roles = "Admin,User")]
@@ -54,7 +54,15 @@ namespace FilesAPI.Controllers
 
             _logger.LogInformation("Пользователь {user} запросил информацию о себе", user);
 
-            return Json(user);
+            var result = new UserModel
+            {
+                Username = user.Username,
+                Email = user.Email,
+                Id = user.Id.Value,
+                Role = user.Role
+            };
+
+            return Json(result);
 
         }
 
@@ -65,7 +73,7 @@ namespace FilesAPI.Controllers
         }
 
         [HttpPost(Name = "CreateNewUser"), Authorize(Roles = "Admin")]
-        public IActionResult CreateNewUser(User user)
+        public IActionResult CreateNewUser(UserDto user)
         {
             if (user == null)
                 return BadRequest();
@@ -86,7 +94,7 @@ namespace FilesAPI.Controllers
 
             var user = _usersService.GetUser(UserId);
 
-            if (!BCrypt.Net.BCrypt.Verify(oldPassword, user.Password))
+           if (!BCrypt.Net.BCrypt.Verify(oldPassword, user?.Password))
             {
                 _logger.LogWarning("Введен неправильный пароль для пользователя {user}", user);
                 return BadRequest("Старый пароль введен неверно");

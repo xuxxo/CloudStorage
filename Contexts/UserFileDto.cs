@@ -1,6 +1,6 @@
 ﻿namespace FilesAPI.Contexts
 { 
-    public class UserFile
+    public class UserFileDto
     {
         public long Id { get; set; }
         public string Name { get; set; }

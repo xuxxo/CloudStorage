@@ -1,9 +1,6 @@
-﻿using FilesAPI.Contexts;
-using FilesAPI.Services;
+﻿using FilesAPI.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.IO.Compression;
 using System.Security.Claims;
 
 namespace FilesAPI.Controllers
@@ -16,13 +13,7 @@ namespace FilesAPI.Controllers
         private readonly FileService _fileService;
         private readonly ILogger<FilesController> _logger;
 
-        private long UserId
-        {
-            get
-            {
-                return Int64.Parse(User.Claims.First(i => i.Type == ClaimTypes.NameIdentifier).Value);    // возвращаем значение свойства
-            }
-        }
+        private long UserId => long.Parse(User.Claims.First(i => i.Type == ClaimTypes.NameIdentifier).Value);    
 
         public FilesController(FileService fileService, ILogger<FilesController> logger)
         {
@@ -44,7 +35,6 @@ namespace FilesAPI.Controllers
                 return NotFound($"Файл по id = {id} не найден");
             }
                 
-            
             return PhysicalFile(Path.Combine(Path.GetFullPath(result.Path), result.Name), result.ContentType, result.Name);
         }
 
@@ -59,7 +49,6 @@ namespace FilesAPI.Controllers
         [HttpPost]
         public IActionResult Post(IFormFile userFile)
         {
-
             var response = _fileService.AddNewFile(userFile, UserId);
 
             if (response.IsSuccess)

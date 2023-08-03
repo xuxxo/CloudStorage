@@ -61,7 +61,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 
-builder.Logging.AddSerilog(new LoggerConfiguration().WriteTo.PostgreSQL("Host=localhost;Port=5432;Database=filesdb;Username=postgres;Password=1", "Logss", needAutoCreateTable: true).CreateLogger());
+builder.Logging.AddSerilog(new LoggerConfiguration().WriteTo.PostgreSQL("Host=localhost;Port=5432;Database=filesdb;Username=postgres;Password=1", "LogsTable", needAutoCreateTable: true).CreateLogger());
 
 var app = builder.Build();
 
@@ -72,7 +72,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 
 app.UseAuthentication();
 app.UseAuthorization();

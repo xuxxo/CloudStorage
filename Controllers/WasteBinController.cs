@@ -1,24 +1,17 @@
-﻿using FilesAPI.Contexts;
-using FilesAPI.Services;
-using Microsoft.AspNetCore.Http;
+﻿using FilesAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IO.Compression;
 using System.Security.Claims;
 
 namespace FilesAPI.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class WasteBinController : Controller
     {
         private readonly FileService _fileService;
-        private long UserId
-        {
-            get
-            {
-                return Int64.Parse(User.Claims.First(i => i.Type == ClaimTypes.NameIdentifier).Value);
-            }
-        }
+        private long UserId => long.Parse(User.Claims.First(i => i.Type == ClaimTypes.NameIdentifier).Value);        
 
         public WasteBinController(FileService fileService)
         {
@@ -52,10 +45,7 @@ namespace FilesAPI.Controllers
         {
             var response = _fileService.DeleteFileAtAll(fileId, UserId);
 
-            if (response.IsSuccess)
-                return Ok(response.Message);
-
-            return BadRequest(response.Message);
+            return response.IsSuccess ? Ok(response.Message) : BadRequest(response.Message);
         }
     }
 }

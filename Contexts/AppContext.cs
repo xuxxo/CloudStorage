@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 public class AppContext : DbContext
 {
-    public DbSet<User> Users { get; set; } = null!;
-    public DbSet<UserFile> Files { get; set; } = null!;
+    public DbSet<UserDto> Users { get; set; } = null!;
+    public DbSet<UserFileDto> Files { get; set; } = null!;
     public AppContext()
     {
         Database.EnsureCreated();

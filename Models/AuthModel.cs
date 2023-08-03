@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace FilesAPI.Models
 {
-    public class UserDto
+    public class AuthModel
     {
         public string? Email { get; set; }
 

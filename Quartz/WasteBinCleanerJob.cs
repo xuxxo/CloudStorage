@@ -1,5 +1,4 @@
-﻿using FilesAPI.Services;
-using Quartz;
+﻿using Quartz;
 
 namespace FilesAPI.Quartz
 {
